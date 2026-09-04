@@ -1,8 +1,81 @@
 # 菜鸟包裹监控（CainiaoMonitor）
 
-Windows 桌面包裹物流监控应用（Python + PySide6）。通过 **API 服务商**按运单号查询快递物流，定时自动刷新，物流有新动态时**系统托盘弹通知**。界面无广告，所有数据只保存在本机。
+包裹物流监控应用，两个版本共用一套 API 服务商体系：
 
-## 功能特性
+- **Windows 桌面版**（`/` 根目录，Python + PySide6）：定时自动刷新，物流有新动态**系统托盘弹通知**；
+- **Android 版**（`/flutter_app` 目录，Flutter）：手机端追踪，Material You 深色风格。
+
+两个版本界面无广告，所有数据只保存在本机。
+
+---
+
+# Android 版（Flutter）
+
+手机端快递物流追踪：手动添加运单号，即时查询物流轨迹，定时自动刷新，最新状态始终排在最前；详情为恒定半屏时间线弹层，适配折叠屏（Flip / Fold）。
+
+| 欢迎页 | 首页 | 详情半屏 | 添加运单 |
+| --- | --- | --- | --- |
+| ![welcome](flutter_app/screenshots/welcome.png) | ![home](flutter_app/screenshots/home.png) | ![detail](flutter_app/screenshots/detail.png) | ![add](flutter_app/screenshots/add.png) |
+
+## 下载 APK
+
+仓库根目录提供预构建 APK：[`包裹监控.apk`](包裹监控.apk)（约 21 MB，**不含任何个人凭证**，安装后首次启动自行填入自己的 API 凭证即可）。
+
+## Android 版功能特性
+
+- **数据服务商（欢迎页三选一）**：快递100 API（推荐）/ 快递鸟 API / 模拟模式（离线演示）；
+- **包裹卡片**：快递公司徽章、打码运单号、状态标签（运输中 / 派送中 / 已签收）、**轨迹最新状态在前**；
+- **详情半屏弹层**：点击卡片从底部滑入恒定半屏时间线（h = 1/2 屏高），最新节点高亮，折叠屏按屏幕高度自适应；
+- **手动添加运单**：右下角「＋」输入运单号，快递公司芯片选择（顺丰/圆通/中通/申通/韵达/京东/EMS/极兔/其他），可留手机尾号；
+- **自动刷新**：每 30 秒检查一次，达到设定间隔（默认 5 分钟）且存在运单时后台刷新；下拉刷新重置基线；设置页可开免打扰；
+- **健壮性**：DNS 失败自动走 IP + Host 头兜底；查询失败展示缓存数据不崩溃；同单号 30 分钟内直接用缓存（防接口锁单）。
+
+## Android 版从源码构建
+
+需要 Flutter 3.24.x（Dart 3.5.x）与 Android SDK 34：
+
+```bash
+cd flutter_app
+flutter config --android-sdk <你的SDK路径>   # 防止 local.properties 被覆写
+flutter pub get
+flutter build apk --release
+# 产物：build/app/outputs/flutter-apk/app-release.apk
+```
+
+## Android 版使用
+
+1. 安装 APK，首次启动选择数据服务商；
+2. 快递100：填入授权 key + customer（仓库与 APK 内**不含任何默认凭证**）；也可先玩模拟模式；
+3. 「＋」添加运单号 → 选快递公司 → 添加并查询；
+4. 之后每 5 分钟自动刷新（可在设置调整），下拉可立即刷新。
+
+## Android 版项目结构
+
+```
+flutter_app/lib/
+├── main.dart               # 入口、AppState、路由
+├── models.dart             # Package / TraceNode（轨迹最新在前）
+├── constants.dart          # 快递公司表、演示数据
+├── theme.dart              # Material You 深色主题
+├── services/
+│   ├── kuaidi100_api.dart  # 快递100 实时查询（MD5 签名 + IP 兜底）
+│   ├── kdniao_api.dart     # 快递鸟即时查询（DataSign + IP 兜底）
+│   └── config_store.dart   # SharedPreferences（凭证按服务商独立存储）
+└── screens/
+    ├── welcome_screen.dart # 欢迎页（服务商三选一）
+    ├── home_screen.dart    # 首页卡片 + 自动刷新 Timer
+    ├── detail_sheet.dart   # 半屏详情时间线
+    ├── add_sheet.dart      # 添加运单弹层
+    └── settings_screen.dart# 设置
+```
+
+---
+
+# Windows 桌面版（Python + PySide6）
+
+通过 **API 服务商**按运单号查询快递物流，定时自动刷新，物流有新动态时**系统托盘弹通知**。界面无广告，所有数据只保存在本机。
+
+## 功能特性（桌面版）
 
 - **数据服务商（登录页四选一）**
   1. **菜鸟账号**：手机号短信授权（旧版网页接口，可能随时失效）；

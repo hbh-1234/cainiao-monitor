@@ -1,0 +1,14 @@
+# gradle wrapper 三件套需要入库，clone 后才能直接构建
+!/gradle/wrapper/gradle-wrapper.jar
+!gradlew
+!gradlew.bat
+/.gradle
+/captures/
+/local.properties
+GeneratedPluginRegistrant.java
+
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/*.keystore
+**/*.jks
