@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+build/
+build_lite/
+build_full/
+dist/
+dist_lite/
+dist_full/
+tests/_tmp/
+tests/_shots/
+*.spec.bak
