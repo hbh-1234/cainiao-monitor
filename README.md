@@ -1,166 +1,168 @@
-# 包裹监控（Package Monitor）
+<p align="center">English | <a href="README.zh-CN.md">简体中文</a></p>
 
-包裹物流监控应用，两个版本共用一套 API 服务商体系：
+# Package Monitor (包裹监控)
 
-- **Windows 桌面版**（`/` 根目录，Python + PySide6）：定时自动刷新，物流有新动态**系统托盘弹通知**；
-- **Android 版**（`/flutter_app` 目录，Flutter）：手机端追踪，Material You 深色风格。
+A parcel / express-delivery tracking app in two editions sharing one API provider system:
 
-两个版本界面无广告，所有数据只保存在本机。
+- **Windows Desktop** (repo root, Python + PySide6): periodic auto-refresh, **system-tray notifications** on new tracking events;
+- **Android** (`/flutter_app`, Flutter): on-the-go tracking with a Material You dark theme.
+
+Both editions are ad-free and keep all data on your device.
 
 ---
 
-# Android 版（Flutter）
+# Android Edition (Flutter)
 
-手机端快递物流追踪：手动添加运单号，即时查询物流轨迹，定时自动刷新，最新状态始终排在最前；详情为恒定半屏时间线弹层，适配折叠屏（Flip / Fold）。
+Track courier shipments on your phone: add a tracking number, query the logistics timeline on demand, auto-refresh on a schedule — latest status always on top. Details open as a fixed half-screen bottom sheet; foldables (Flip / Fold) adapt to the screen height.
 
-| 欢迎页 | 首页 | 详情半屏 | 添加运单 |
+| Welcome | Home | Half-screen details | Add shipment |
 | --- | --- | --- | --- |
 | ![welcome](flutter_app/screenshots/welcome.png) | ![home](flutter_app/screenshots/home.png) | ![detail](flutter_app/screenshots/detail.png) | ![add](flutter_app/screenshots/add.png) |
 
-## 下载 APK
+## Download APK
 
-仓库根目录提供预构建 APK：[`包裹监控.apk`](包裹监控.apk)（约 21 MB，**不含任何个人凭证**，安装后首次启动自行填入自己的 API 凭证即可）。
+A prebuilt APK ships in the repo root: [`包裹监控.apk`](包裹监控.apk) (~21 MB, **contains no personal credentials** — enter your own API credentials on first launch).
 
-## Android 版功能特性
+## Features (Android)
 
-- **数据服务商（欢迎页三选一）**：快递100 API（推荐）/ 快递鸟 API / 模拟模式（离线演示）；
-- **包裹卡片**：快递公司徽章、打码运单号、状态标签（运输中 / 派送中 / 已签收）、**轨迹最新状态在前**；
-- **详情半屏弹层**：点击卡片从底部滑入恒定半屏时间线（h = 1/2 屏高），最新节点高亮，折叠屏按屏幕高度自适应；
-- **手动添加运单**：右下角「＋」输入运单号，快递公司芯片选择（顺丰/圆通/中通/申通/韵达/京东/EMS/极兔/其他），可留手机尾号；
-- **自动刷新**：每 30 秒检查一次，达到设定间隔（默认 5 分钟）且存在运单时后台刷新；下拉刷新重置基线；设置页可开免打扰；
-- **健壮性**：DNS 失败自动走 IP + Host 头兜底；查询失败展示缓存数据不崩溃；同单号 30 分钟内直接用缓存（防接口锁单）。
+- **Data providers (choose one on the welcome screen)**: Kuaidi100 API (recommended) / KDNiao API / Demo mode (offline);
+- **Parcel cards**: courier badge, masked tracking number, status tag (In transit / Out for delivery / Delivered), latest event & time — **timeline always newest-first**;
+- **Half-screen detail sheet**: slides up from the bottom with the full timeline (h = 1/2 screen height), newest node highlighted; foldables adapt automatically;
+- **Add shipments**: the "＋" FAB opens a sheet with tracking-number input and courier chips (SF / YTO / ZTO / STO / YUNDA / JD / EMS / J&T / Other); optional phone-tail digits (required by some couriers, e.g. SF);
+- **Auto refresh**: checks every 30 s and refreshes in the background once the configured interval (default 5 min) is reached; pull-to-refresh resets the timer; Do-not-disturb toggle in Settings;
+- **Robustness**: falls back to IP + Host header when DNS fails (emulators); shows cached data on query failure instead of crashing; reuses results within 30 min per tracking number (avoids provider rate-locking).
 
-## Android 版从源码构建
+## Build from source (Android)
 
-需要 Flutter 3.24.x（Dart 3.5.x）与 Android SDK 34：
+Requires Flutter 3.24.x (Dart 3.5.x) and Android SDK 34:
 
 ```bash
 cd flutter_app
-flutter config --android-sdk <你的SDK路径>   # 防止 local.properties 被覆写
+flutter config --android-sdk <path-to-your-sdk>   # prevents local.properties from being overwritten
 flutter pub get
 flutter build apk --release
-# 产物：build/app/outputs/flutter-apk/app-release.apk
+# Output: build/app/outputs/flutter-apk/app-release.apk
 ```
 
-## Android 版使用
+## Usage (Android)
 
-1. 安装 APK，首次启动选择数据服务商；
-2. 快递100：填入授权 key + customer（仓库与 APK 内**不含任何默认凭证**）；也可先玩模拟模式；
-3. 「＋」添加运单号 → 选快递公司 → 添加并查询；
-4. 之后每 5 分钟自动刷新（可在设置调整），下拉可立即刷新。
+1. Install the APK and pick a data provider on first launch;
+2. For Kuaidi100, enter your auth key + customer (the repo and APK contain **no default credentials**); or try Demo mode first;
+3. Tap "＋" to add a tracking number → pick the courier → add & query;
+4. Shipments auto-refresh every 5 minutes (adjustable in Settings); pull down for an instant refresh.
 
-## Android 版项目结构
+## Project structure (Android)
 
 ```
 flutter_app/lib/
-├── main.dart               # 入口、AppState、路由
-├── models.dart             # Package / TraceNode（轨迹最新在前）
-├── constants.dart          # 快递公司表、演示数据
-├── theme.dart              # Material You 深色主题
+├── main.dart               # Entry point, AppState, routing
+├── models.dart             # Package / TraceNode (newest-first timeline)
+├── constants.dart          # Courier table, demo data
+├── theme.dart              # Material You dark theme
 ├── services/
-│   ├── kuaidi100_api.dart  # 快递100 实时查询（MD5 签名 + IP 兜底）
-│   ├── kdniao_api.dart     # 快递鸟即时查询（DataSign + IP 兜底）
-│   └── config_store.dart   # SharedPreferences（凭证按服务商独立存储）
+│   ├── kuaidi100_api.dart  # Kuaidi100 realtime query (MD5 sign + IP fallback)
+│   ├── kdniao_api.dart     # KDNiao instant query (DataSign + IP fallback)
+│   └── config_store.dart   # SharedPreferences (per-provider credential slots)
 └── screens/
-    ├── welcome_screen.dart # 欢迎页（服务商三选一）
-    ├── home_screen.dart    # 首页卡片 + 自动刷新 Timer
-    ├── detail_sheet.dart   # 半屏详情时间线
-    ├── add_sheet.dart      # 添加运单弹层
-    └── settings_screen.dart# 设置
+    ├── welcome_screen.dart # Welcome screen (provider picker)
+    ├── home_screen.dart    # Home cards + auto-refresh timer
+    ├── detail_sheet.dart   # Half-screen detail timeline
+    ├── add_sheet.dart      # Add-shipment sheet
+    └── settings_screen.dart# Settings
 ```
 
 ---
 
-# Windows 桌面版（Python + PySide6）
+# Windows Desktop Edition (Python + PySide6)
 
-通过 **API 服务商**按运单号查询快递物流，定时自动刷新，物流有新动态时**系统托盘弹通知**。界面无广告，所有数据只保存在本机。
+Query courier logistics by tracking number through **API providers**, refresh automatically on a schedule, and get **system-tray notifications** when something new happens. Ad-free; all data stays on your machine.
 
-## 功能特性（桌面版）
+## Features (Desktop)
 
-- **数据服务商（登录页四选一）**
-  1. **菜鸟账号**：手机号短信授权（旧版网页接口，可能随时失效）；
-  2. **快递鸟 API**：EBusinessID + AppKey，按运单号即时查询；
-  3. **快递100 API**（推荐）：customer（企业ID）+ key（授权key），走官方企业实时查询接口（poll.kuaidi100.com）；不填 key 时可用免费公开查询；
-  4. **模拟模式**：无需账号，离线演示完整流程。
-- **包裹卡片网格**：砖块式错位布局（行间错位），随窗口宽度自适应每行卡片数（宽窗口每行 3 张）；卡片显示快递公司徽章、打码运单号、最新状态、时间。
-- **包裹详情**：点卡片弹出详情 —— 完整物流时间线（倒序，最新在顶部）。
-- **手动添加运单**：主界面「＋」输入/粘贴运单号、选快递公司即可查询跟踪；已保存手机号自动作为顺丰等查询尾号。
-- **自动刷新**：默认每 5 分钟后台刷新，有新动态托盘通知；设置页可开**免打扰**（静默刷新不弹通知）。
-- **设置（抽屉式滑层）**：数据来源说明 / 日志 / API 服务商设置 / 刷新间隔 / 免打扰 / 外观 / 账号。
-- **外观**：深色 / 浅色 / 跟随系统三档，内置 8 套配色方案，整站颜色随主题令牌联动（背景、卡片、顶栏、强调色）。
-- **健壮性**：单实例运行、关窗驻留托盘、网络异常显示缓存数据不崩溃。
+- **Data providers (choose one on the login window)**
+  1. **Cainiao account**: phone-number SMS authorization (legacy web API, may break at any time);
+  2. **KDNiao API**: EBusinessID + AppKey, per-number instant query;
+  3. **Kuaidi100 API** (recommended): customer (enterprise ID) + key (auth key) via the official realtime query endpoint (poll.kuaidi100.com); falls back to a free public query when no key is set;
+  4. **Demo mode**: built-in sample parcels, fully offline.
+- **Parcel card grid**: staggered brick layout that adapts to window width (3 cards per row on wide windows); each card shows the courier badge, masked tracking number, latest status and time.
+- **Parcel details**: click a card for the full timeline (newest first).
+- **Add shipments**: "＋" on the main window — paste a number, pick the courier; a saved phone tail is used automatically for queries that need it (e.g. SF).
+- **Auto refresh**: background refresh every 5 minutes by default, tray notification on changes; **Do-not-disturb** mode available in Settings.
+- **Settings (slide-in drawer)**: data-source notes / logs / API provider / refresh interval / DND / appearance / account.
+- **Appearance**: dark / light / follow-system, 8 built-in color schemes driven by theme tokens (background, cards, top bar, accents).
+- **Robustness**: single instance, keeps running in the tray on close, shows cached data on network errors instead of crashing.
 
-## 数据服务商对比
+## Provider comparison
 
-| 数据源 | 用途 | 说明 |
+| Source | Purpose | Notes |
 |---|---|---|
-| 菜鸟账号（旧接口） | 账号级包裹列表 | 依赖淘宝旧网页接口，可能不可用，仅作补充 |
-| 快递鸟 API | 按单号查询 | api.kdniao.com 即时查询；企业按量计费 |
-| 快递100 API | 按单号查询 | poll.kuaidi100.com 企业实时查询；凭据见官网控制台（customer=企业ID，key=授权key），应用按官方签名调用 |
-| 模拟模式 | 离线演示 | 内置演示包裹，不联网 |
+| Cainiao account (legacy) | Account-level parcel list | Depends on legacy Taobao web API; may be unavailable; supplementary only |
+| KDNiao API | Per-number query | api.kdniao.com instant query; pay-per-use |
+| Kuaidi100 API | Per-number query | poll.kuaidi100.com realtime query; credentials from the console (customer = enterprise ID, key = auth key); official signing |
+| Demo mode | Offline demo | Built-in sample parcels, no network |
 
-> 快递100 凭据获取：登录 <https://api.kuaidi100.com/> → 控制台可查看企业ID(customer) 与授权key。
-> 官方实时查询接口文档：<https://api.kuaidi100.com/document/5f0ffb5ebc8da837cbd8aefc.html>
+> Kuaidi100 credentials: sign in at <https://api.kuaidi100.com/> → console shows the enterprise ID (customer) and auth key.
+> Official realtime-query docs: <https://api.kuaidi100.com/document/5f0ffb5ebc8da837cbd8aefc.html>
 
-## 目录结构
+## Repository layout (desktop part)
 
 ```
 cainiao-monitor/
-├── main.py                     # 程序入口
-├── requirements.txt            # 运行依赖
-├── requirements-dev.txt        # 打包依赖
-├── build_full.bat / build_lite.bat          # 一键打包（完整版 / 精简版）
-├── build_full_onefile.bat / build_lite_onefile.bat  # 可选单文件打包
-├── cainiao_monitor_full_onedir.spec  # 完整版目录版配置（默认）
-├── cainiao_monitor_lite_onedir.spec  # 精简版目录版配置（默认）
-├── cainiao_monitor_full.spec / cainiao_monitor_lite.spec  # 单文件配置（可选）
-├── README.md                   # 本说明
-├── 使用说明.md                  # 完整使用说明
-├── create_project.py           # 一键重建源码（自解压脚本）
+├── main.py                     # Program entry
+├── requirements.txt            # Runtime dependencies
+├── requirements-dev.txt        # Packaging dependencies
+├── build_full.bat / build_lite.bat          # One-click packaging (full / lite)
+├── build_full_onefile.bat / build_lite_onefile.bat  # Optional single-file packaging
+├── cainiao_monitor_full_onedir.spec  # Full edition, onedir (default)
+├── cainiao_monitor_lite_onedir.spec  # Lite edition, onedir (default)
+├── cainiao_monitor_full.spec / cainiao_monitor_lite.spec  # Single-file specs (optional)
+├── README.md                   # This file
+├── 使用说明.md                  # Full user manual (Chinese)
+├── create_project.py           # One-click source re-creation (self-extracting script)
 ├── tools/
-│   └── gen_icon.py             # 生成应用图标 icon.ico
-├── resources/                  # 图标等资源
+│   └── gen_icon.py             # Generates the app icon (icon.ico)
+├── resources/                  # Icons and other assets
 ├── app/
-│   ├── config.py               # 配置管理（服务商密钥/设置/缓存，JSON）
-│   ├── constants.py            # 快递公司表、配色、接口常量
-│   ├── models.py               # 数据模型（包裹/轨迹节点）
-│   ├── logger.py               # 日志
+│   ├── config.py               # Config store (provider keys / settings / cache, JSON)
+│   ├── constants.py            # Courier table, color schemes, API constants
+│   ├── models.py               # Data models (parcel / timeline node)
+│   ├── logger.py               # Logging
 │   ├── api/
-│   │   ├── http_client.py      # 统一 Session/超时/重试/异常
-│   │   ├── wuliu.py            # 淘宝物流助手：列表/详情抓取与容错解析
-│   │   ├── kdniao.py           # 快递鸟 API 查询
-│   │   └── kuaidi100.py        # 快递100 查询
+│   │   ├── http_client.py      # Shared session / timeout / retry / errors
+│   │   ├── wuliu.py            # Taobao logistics helper: list & detail scraping
+│   │   ├── kdniao.py           # KDNiao API query
+│   │   └── kuaidi100.py        # Kuaidi100 query
 │   ├── core/
-│   │   ├── monitor.py          # 后台监控线程（轮询+变化检测）
-│   │   ├── notifier.py         # 系统托盘与通知
-│   │   └── workers.py          # 线程分离工具
+│   │   ├── monitor.py          # Background monitor thread (polling + change detection)
+│   │   ├── notifier.py         # System tray & notifications
+│   │   └── workers.py          # Threading helpers
 │   └── ui/
-│       ├── theme.py            # 主题令牌系统（深浅色+配色方案）
-│       ├── icons.py            # 程序化图标（托盘/徽章/状态点）
-│       ├── login_window.py     # 登录窗口（服务商选择/凭据）
-│       ├── main_window.py      # 主窗口（卡片网格+托盘+设置抽屉）
-│       ├── package_card.py     # 包裹卡片控件
-│       ├── detail_dialog.py    # 详情弹窗（时间线）
-│       ├── add_package_dialog.py # 手动添加运单
-│       └── staggered_layout.py # 砖块式错位布局
+│       ├── theme.py            # Theme token system (dark/light + color schemes)
+│       ├── icons.py            # Programmatic icons (tray / badges / status dots)
+│       ├── login_window.py     # Login window (provider selection / credentials)
+│       ├── main_window.py      # Main window (card grid + tray + settings drawer)
+│       ├── package_card.py     # Parcel card widget
+│       ├── detail_dialog.py    # Detail dialog (timeline)
+│       ├── add_package_dialog.py # Add-shipment dialog
+│       └── staggered_layout.py # Staggered brick layout
 └── tests/
-    ├── test_core.py            # 核心逻辑测试（可离线）
-    └── test_ui_smoke.py        # UI 冒烟测试（离屏截图）
+    ├── test_core.py            # Core logic tests (offline-capable)
+    └── test_ui_smoke.py        # UI smoke tests (offscreen screenshots)
 ```
 
-## 运行（开发模式）
+## Run (dev mode, desktop)
 
-需要 Python 3.10+：
+Requires Python 3.10+:
 
 ```bat
 pip install -r requirements.txt
-python main.py --simulate   # 模拟模式体验（无需账号）
-python main.py              # 登录页选择服务商
+python main.py --simulate   # demo mode, no account needed
+python main.py              # pick a provider on the login window
 ```
 
-## 打包成独立 .exe
+## Build a standalone .exe (desktop)
 
-默认「目录版」（onedir，运行零解压，避免 MSVCP140 解压报错）：
+The default is the "onedir" build (zero unpacking at runtime, avoids MSVCP140 extraction errors):
 
 ```bat
 pip install -r requirements-dev.txt
@@ -168,55 +170,55 @@ python tools\gen_icon.py
 pyinstaller --clean --noconfirm --distpath dist_lite --workpath build_lite cainiao_monitor_lite_onedir.spec
 ```
 
-产物在 `dist_lite\CainiaoMonitorLite\`：双击 exe 或 `启动菜鸟监控.cmd` 启动。
+Output lands in `dist_lite\CainiaoMonitorLite\`: launch the exe or `启动菜鸟监控.cmd`.
 
-- **完整版**（含内嵌浏览器，可网页登录菜鸟）：`build_full.bat` / `cainiao_monitor_full_onedir.spec`
-- **精简版**（无内嵌浏览器，体积更小）：`build_lite.bat`，登录用「系统浏览器 + 粘贴 Cookie」
-- 杀毒软件偶发误报 PyInstaller 产物，添加信任即可。
+- **Full edition** (embedded browser for Cainiao web login): `build_full.bat` / `cainiao_monitor_full_onedir.spec`
+- **Lite edition** (no embedded browser, smaller): `build_lite.bat` — login via "system browser + paste Cookie"
+- Antivirus tools occasionally flag PyInstaller binaries; add a trust rule if that happens.
 
-## 使用（推荐：快递100）
+## Usage (recommended: Kuaidi100, desktop)
 
-1. 打开软件 → 登录页选 **快递100 API**；
-2. 填入 customer（企业ID）与 key（授权key），或勾选免费公开查询；
-3. 进入主界面 →「＋」粘贴运单号、选快递公司 → 查询添加；
-4. 程序每 5 分钟自动刷新，有新动态托盘通知。
+1. Launch the app → pick **Kuaidi100 API** on the login window;
+2. Enter customer (enterprise ID) and key (auth key), or tick the free public query;
+3. On the main window → "＋" paste a tracking number, pick the courier → add;
+4. The app auto-refreshes every 5 minutes and notifies via tray on changes.
 
-> 菜鸟账号（手机号授权）依赖旧版网页接口，仅作补充；快递鸟 / 快递100 按单号查询最稳定。
+> The Cainiao account (phone authorization) depends on a legacy web API and is supplementary only; KDNiao / Kuaidi100 per-number queries are the most reliable.
 
-## 数据与本机隐私
+## Data & local privacy (desktop)
 
-- 所有登录信息（Cookie、手机号、API 密钥）仅保存在本机 `%APPDATA%\CainiaoMonitor\`，不上传任何服务器；
-- **分享前清除个人信息**：软件设置 →「清除我的信息」，或手动删除 `%APPDATA%\CainiaoMonitor` 目录；
-- 本项目为个人工具，不隶属阿里/菜鸟/快递100 等任何公司；接口可能随时调整，因使用产生的后果由使用者自行承担。
+- All sign-in data (cookies, phone number, API keys) stays in `%APPDATA%\CainiaoMonitor\` on your machine — nothing is uploaded;
+- **Before sharing, clear personal info**: app Settings → "Clear my info", or delete the `%APPDATA%\CainiaoMonitor` folder manually;
+- Personal project, not affiliated with Alibaba / Cainiao / Kuaidi100 / KDNiao or any other company; APIs may change at any time; use at your own risk.
 
 ---
 
-# API 申请教程（快递100 / 快递鸟）
+# API Application Guide (Kuaidi100 / KDNiao)
 
-> 两个版本通用。两种服务都是「按运单号查询」，免费额度个人日常够用；用量大需付费升级。
-> 凭据只存在本机，填到对应版本的服务商设置里即可使用（桌面版登录页 / Android 版欢迎页）。
+> Applies to both editions. Both services query by tracking number; the free tier is enough for personal use, paid tiers for heavy usage.
+> Credentials are stored locally only — enter them in the provider settings of whichever edition you use (desktop login window / Android welcome screen).
 
-## 快递100（推荐）
+## Kuaidi100 (recommended)
 
-1. 打开 **<https://api.kuaidi100.com/>** 注册账号并登录（手机号即可）；
-2. 完成**实名认证**（个人认证即可，一般即时通过）；
-3. 控制台开通「**实时快递查询**」服务（有免费试用额度）；
-4. 在「控制台 → 账号信息/密钥」查看两项凭据：
-   - **customer**（企业ID / 授权码）
-   - **key**（授权 key）
-5. 桌面版登录页 / Android 版欢迎页选「**快递100**」，填入 customer 与 key 即可。
+1. Sign up and log in at **<https://api.kuaidi100.com/>** (phone number is enough);
+2. Complete **identity verification** (personal verification works, usually instant);
+3. In the console, activate the "**Realtime Express Query**" service (free trial quota included);
+4. Under "Console → Account info / Keys", grab the two credentials:
+   - **customer** (enterprise ID / auth code)
+   - **key** (auth key)
+5. Pick "**Kuaidi100**" on the desktop login window / Android welcome screen and enter customer + key.
 
-- 官方实时查询接口文档：<https://api.kuaidi100.com/document/5f0ffb5ebc8da837cbd8aefc.html>
-- 仅桌面版：不填 key 时自动用「免费公开查询」兜底（部分快递需手机尾号）。
+- Official realtime-query docs: <https://api.kuaidi100.com/document/5f0ffb5ebc8da837cbd8aefc.html>
+- Desktop only: with no key set, the app falls back to a "free public query" (some couriers need the phone tail).
 
-## 快递鸟
+## KDNiao
 
-1. 打开 **<https://www.kdniao.com/>** 注册账号并登录；
-2. 「用户中心 → 实名认证」完成认证（免费）；
-3. 「服务中心」开通「**物流跟踪（即时查询）**」接口（免费版每日有查询上限）；
-4. 「用户中心 → 我的信息/密钥管理」查看两项凭据：
-   - **EBusinessID**（用户ID）
-   - **AppKey**（密钥）
-5. 桌面版登录页 / Android 版欢迎页选「**快递鸟**」，填入 EBusinessID 与 AppKey 即可。
+1. Sign up and log in at **<https://www.kdniao.com/>**;
+2. Complete identity verification under "User Center → Real-name Verification" (free);
+3. Under "Service Center", activate the "**Logistics Tracking (instant query)**" API (free tier has a daily query cap);
+4. Under "User Center → My Info / Key Management", grab the two credentials:
+   - **EBusinessID** (user ID)
+   - **AppKey** (secret)
+5. Pick "**KDNiao**" on the desktop login window / Android welcome screen and enter EBusinessID + AppKey.
 
-- 注意：免费额度用完后查询会提示额度不足（次日恢复或付费升级），此时可改用快递100。
+- Note: once the free quota is used up, queries report a quota error (resets daily, or upgrade to paid) — switch to Kuaidi100 in that case.
