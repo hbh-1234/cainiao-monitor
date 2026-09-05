@@ -21,7 +21,7 @@ Track courier shipments on your phone: add a tracking number, query the logistic
 
 ## Download APK
 
-A prebuilt APK ships in the repo root: [`包裹监控.apk`](包裹监控.apk) (~21 MB, **contains no personal credentials** — enter your own API credentials on first launch).
+A prebuilt APK ships in the repo root: [`PackageMonitor.apk`](PackageMonitor.apk) (~21 MB, **contains no personal credentials** — enter your own API credentials on first launch).
 
 ## Features (Android)
 

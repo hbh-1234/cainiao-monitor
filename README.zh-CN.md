@@ -21,7 +21,7 @@
 
 ## 下载 APK
 
-仓库根目录提供预构建 APK：[`包裹监控.apk`](包裹监控.apk)（约 21 MB，**不含任何个人凭证**，安装后首次启动自行填入自己的 API 凭证即可）。
+仓库根目录提供预构建 APK：[`PackageMonitor.apk`](PackageMonitor.apk)（约 21 MB，**不含任何个人凭证**，安装后首次启动自行填入自己的 API 凭证即可）。
 
 ## Android 版功能特性
 
